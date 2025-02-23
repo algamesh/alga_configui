@@ -1,0 +1,24 @@
+name: alga_uikit_example
+description: An example app demonstrating the alga_uikit package.
+version: 1.0.0+1
+publish_to: 'none'  # This prevents the example from being accidentally published.
+
+environment:
+  sdk: '>=2.12.0 <4.0.0'  # Ensure this matches your development environment and package compatibility
+
+dependencies:
+  flutter:
+    sdk: flutter
+  alga_configuikit:  # Use alga_configuikit
+    path: ../
+  shared_preferences: ^2.5.2
+  dart_datakit: ^1.1.1+1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
+  assets:
+    - ./assets/config.json

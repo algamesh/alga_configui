@@ -1,0 +1,12 @@
+{
+  "Users": [
+    { "id": 1, "name": "Alice", "role": "Administrator" },
+    { "id": 2, "name": "Bob", "role": "Editor" },
+    { "id": 3, "name": "Charlie", "role": "Viewer" }
+  ],
+  "Products": [
+    { "product_id": 101, "product_name": "Widget", "price": 9.99 },
+    { "product_id": 102, "product_name": "Gadget", "price": 12.99 },
+    { "product_id": 103, "product_name": "Thingamajig", "price": 14.99 }
+  ]
+}
