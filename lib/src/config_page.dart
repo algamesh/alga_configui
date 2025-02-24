@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'dart:convert';
 import 'package:dart_datakit/dart_datakit.dart';
 
 class ConfigPage extends StatefulWidget {
   /// Optionally provide a [Datacat] object.
   final Datacat? datacat;
 
-  const ConfigPage({Key? key, this.datacat}) : super(key: key);
+  const ConfigPage({super.key, this.datacat});
 
   @override
   State<ConfigPage> createState() => _ConfigPageState();
