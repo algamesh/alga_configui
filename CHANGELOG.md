@@ -1,3 +1,7 @@
+## 0.0.3
+
+* Data into config handles json map.
+
 ## 0.0.2
 
 * Update second_page to config_page.

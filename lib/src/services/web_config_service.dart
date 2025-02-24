@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class WebConfigService {
@@ -8,12 +7,11 @@ class WebConfigService {
   Future<Map<String, dynamic>> loadJson() async {
     final prefs = await SharedPreferences.getInstance();
     final storedString = prefs.getString(_prefsKey);
-
     if (storedString != null) {
       return jsonDecode(storedString) as Map<String, dynamic>;
     } else {
-      final assetString = await rootBundle.loadString('assets/config.json');
-      return jsonDecode(assetString) as Map<String, dynamic>;
+      // Instead of loading from an asset, return an empty map.
+      return <String, dynamic>{};
     }
   }
 

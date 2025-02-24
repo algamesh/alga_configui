@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
-import 'package:alga_configui/src/services/web_config_service.dart';
 import 'package:dart_datakit/dart_datakit.dart';
 
 class ConfigPage extends StatefulWidget {
@@ -14,8 +13,6 @@ class ConfigPage extends StatefulWidget {
 }
 
 class _ConfigPageState extends State<ConfigPage> {
-  final _configService = WebConfigService();
-
   // We store each table as a Datacat instance.
   Map<String, Datacat>? _allData;
   List<String> _tableNames = [];
@@ -27,89 +24,46 @@ class _ConfigPageState extends State<ConfigPage> {
   @override
   void initState() {
     super.initState();
-    // If a Datacat was passed in, use it directly.
+    // If a Datacat was provided, use it; otherwise, create one from in-line JSON.
     if (widget.datacat != null) {
       _allData = {'default': widget.datacat!};
       _tableNames = ['default'];
       _selectedTable = 'default';
       _isLoading = false;
     } else {
-      _loadConfig();
-    }
-  }
-
-  Future<void> _loadConfig() async {
-    setState(() => _isLoading = true);
-    try {
-      // Load the raw JSON from the config service.
-      final rawData = await _configService.loadJson();
-      if (rawData.isEmpty) {
-        // Fallback to a placeholder if no data is returned.
-        _allData = _createPlaceholder();
-      } else {
-        // Convert each table (assumed to be a List of maps) into a Datacat.
-        final Map<String, Datacat> datacatMap = {};
-        rawData.forEach((tableName, tableData) {
-          final jsonStr = jsonEncode(tableData);
-          datacatMap[tableName] = Datacat.fromJsonString(jsonStr);
-        });
-        _allData = datacatMap;
-      }
-      _tableNames = _allData!.keys.toList();
-      if (_tableNames.isNotEmpty) {
-        _selectedTable = _tableNames[0];
-      }
-    } catch (e) {
-      debugPrint('Error loading config data: $e');
-      // In case of error, fallback to the placeholder.
       _allData = _createPlaceholder();
       _tableNames = _allData!.keys.toList();
       if (_tableNames.isNotEmpty) {
         _selectedTable = _tableNames[0];
       }
-    } finally {
-      setState(() => _isLoading = false);
+      _isLoading = false;
     }
   }
 
-  /// Creates a placeholder Datacat from in-code JSON.
   Map<String, Datacat> _createPlaceholder() {
     const placeholderJson = '''
-    {
-      "columns": ["id", "name", "value"],
-      "rows": [
-        [1, "Sample", "Data"],
-        [2, "Placeholder", "Data"]
-      ]
-    }
-    ''';
-    final placeholderDatacat = Datacat.fromJsonString(placeholderJson);
-    return {'default': placeholderDatacat};
+{
+  "Users": [
+    { "id": 1, "name": "Alice", "role": "Administrator" },
+    { "id": 2, "name": "Bob", "role": "Editor" },
+    { "id": 3, "name": "Charlie", "role": "Viewer" }
+  ],
+  "Products": [
+    { "product_id": 101, "product_name": "Widget", "price": 9.99 },
+    { "product_id": 102, "product_name": "Gadget", "price": 12.99 },
+    { "product_id": 103, "product_name": "Thingamajig", "price": 14.99 }
+  ]
+}
+  ''';
+    return Datacat.fromJsonMapString(placeholderJson);
   }
 
   Future<void> _saveConfig() async {
-    if (_allData == null) return;
+    // For now, we'll simulate a save operation.
     setState(() => _isSaving = true);
-    try {
-      // Convert each Datacat back into a list of maps.
-      final Map<String, dynamic> toSave = {};
-      _allData!.forEach((tableName, datacat) {
-        final List<Map<String, dynamic>> tableRows = [];
-        for (final row in datacat.rows) {
-          final Map<String, dynamic> rowMap = {};
-          for (int i = 0; i < datacat.columns.length; i++) {
-            rowMap[datacat.columns[i]] = i < row.length ? row[i] : null;
-          }
-          tableRows.add(rowMap);
-        }
-        toSave[tableName] = tableRows;
-      });
-      await _configService.saveJson(toSave);
-    } catch (e) {
-      debugPrint('Error saving config data: $e');
-    } finally {
-      setState(() => _isSaving = false);
-    }
+    await Future.delayed(const Duration(milliseconds: 500));
+    setState(() => _isSaving = false);
+    // Optionally, display a confirmation message.
   }
 
   Datacat? get _selectedTableData {

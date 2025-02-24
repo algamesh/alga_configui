@@ -1,35 +1,32 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:path_provider/path_provider.dart';
 
 class ConfigService {
-  static const _assetFilePath = 'assets/config.json';
   static const _localFileName = 'config.json';
 
   static final ConfigService _instance = ConfigService._internal();
   factory ConfigService() => _instance;
   ConfigService._internal();
 
-  Future<File> _ensureLocalFile() async {
+  Future<File> _getLocalFile() async {
     final directory = await getApplicationDocumentsDirectory();
-    final localFile = File('${directory.path}/$_localFileName');
-
-    if (!await localFile.exists()) {
-      final jsonString = await rootBundle.loadString(_assetFilePath);
-      await localFile.writeAsString(jsonString);
-    }
-    return localFile;
+    return File('${directory.path}/$_localFileName');
   }
 
   Future<Map<String, dynamic>> loadJson() async {
-    final file = await _ensureLocalFile();
-    final jsonString = await file.readAsString();
-    return jsonDecode(jsonString) as Map<String, dynamic>;
+    final file = await _getLocalFile();
+    if (await file.exists()) {
+      final jsonString = await file.readAsString();
+      return jsonDecode(jsonString) as Map<String, dynamic>;
+    } else {
+      // Return an empty map if no local configuration exists.
+      return <String, dynamic>{};
+    }
   }
 
   Future<void> saveJson(Map<String, dynamic> data) async {
-    final file = await _ensureLocalFile();
+    final file = await _getLocalFile();
     final jsonString = jsonEncode(data);
     await file.writeAsString(jsonString, flush: true);
   }
