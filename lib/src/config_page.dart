@@ -3,17 +3,20 @@ import 'dart:convert';
 import 'package:alga_configui/src/services/web_config_service.dart';
 import 'package:dart_datakit/dart_datakit.dart';
 
-class SecondPage extends StatefulWidget {
-  const SecondPage({Key? key}) : super(key: key);
+class ConfigPage extends StatefulWidget {
+  /// Optionally provide a [Datacat] object.
+  final Datacat? datacat;
+
+  const ConfigPage({Key? key, this.datacat}) : super(key: key);
 
   @override
-  State<SecondPage> createState() => _SecondPageState();
+  State<ConfigPage> createState() => _ConfigPageState();
 }
 
-class _SecondPageState extends State<SecondPage> {
+class _ConfigPageState extends State<ConfigPage> {
   final _configService = WebConfigService();
 
-  // Now we store each table as a Datacat instance.
+  // We store each table as a Datacat instance.
   Map<String, Datacat>? _allData;
   List<String> _tableNames = [];
   String? _selectedTable;
@@ -24,7 +27,15 @@ class _SecondPageState extends State<SecondPage> {
   @override
   void initState() {
     super.initState();
-    _loadConfig();
+    // If a Datacat was passed in, use it directly.
+    if (widget.datacat != null) {
+      _allData = {'default': widget.datacat!};
+      _tableNames = ['default'];
+      _selectedTable = 'default';
+      _isLoading = false;
+    } else {
+      _loadConfig();
+    }
   }
 
   Future<void> _loadConfig() async {
@@ -32,22 +43,48 @@ class _SecondPageState extends State<SecondPage> {
     try {
       // Load the raw JSON from the config service.
       final rawData = await _configService.loadJson();
-      // Convert each table (assumed to be a List of maps) into a Datacat.
-      final Map<String, Datacat> datacatMap = {};
-      rawData.forEach((tableName, tableData) {
-        // tableData is expected to be a List of maps.
-        final jsonStr = jsonEncode(tableData);
-        datacatMap[tableName] = Datacat.fromJsonString(jsonStr);
-      });
-      setState(() {
+      if (rawData.isEmpty) {
+        // Fallback to a placeholder if no data is returned.
+        _allData = _createPlaceholder();
+      } else {
+        // Convert each table (assumed to be a List of maps) into a Datacat.
+        final Map<String, Datacat> datacatMap = {};
+        rawData.forEach((tableName, tableData) {
+          final jsonStr = jsonEncode(tableData);
+          datacatMap[tableName] = Datacat.fromJsonString(jsonStr);
+        });
         _allData = datacatMap;
-        _tableNames = datacatMap.keys.toList();
-      });
+      }
+      _tableNames = _allData!.keys.toList();
+      if (_tableNames.isNotEmpty) {
+        _selectedTable = _tableNames[0];
+      }
     } catch (e) {
       debugPrint('Error loading config data: $e');
+      // In case of error, fallback to the placeholder.
+      _allData = _createPlaceholder();
+      _tableNames = _allData!.keys.toList();
+      if (_tableNames.isNotEmpty) {
+        _selectedTable = _tableNames[0];
+      }
     } finally {
       setState(() => _isLoading = false);
     }
+  }
+
+  /// Creates a placeholder Datacat from in-code JSON.
+  Map<String, Datacat> _createPlaceholder() {
+    const placeholderJson = '''
+    {
+      "columns": ["id", "name", "value"],
+      "rows": [
+        [1, "Sample", "Data"],
+        [2, "Placeholder", "Data"]
+      ]
+    }
+    ''';
+    final placeholderDatacat = Datacat.fromJsonString(placeholderJson);
+    return {'default': placeholderDatacat};
   }
 
   Future<void> _saveConfig() async {

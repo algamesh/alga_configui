@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:alga_configui/src/second_page.dart';
+import 'package:alga_configui/src/config_page.dart';
 
 void main() {
   runApp(const ExampleApp());
@@ -85,7 +85,7 @@ class _DocumentationPageState extends State<DocumentationPage> {
   void _goToConfigPage(BuildContext context) {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => const SecondPage()),
+      MaterialPageRoute(builder: (_) => const ConfigPage()),
     );
   }
 
