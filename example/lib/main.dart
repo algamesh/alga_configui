@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:alga_configuikit/src/second_page.dart';
+import 'package:alga_configui/src/second_page.dart';
 
 void main() {
   runApp(const ExampleApp());

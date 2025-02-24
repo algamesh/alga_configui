@@ -1,9 +1,9 @@
-name: alga_configuikit
-description: "Handles config ui items."
+name: alga_configui
+description: "Handles configuration user interface elements."
 version: 0.0.1
-homepage: https://github.com/algamesh/alga_configuikit
-repository: https://github.com/algamesh/alga_configuikit
-issue_tracker: https://github.com/algamesh/alga_configuikit/issues
+homepage: https://github.com/algamesh/alga_configui
+repository: https://github.com/algamesh/alga_configui
+issue_tracker: https://github.com/algamesh/alga_configui/issues
 
 environment:
   sdk: ^3.6.2

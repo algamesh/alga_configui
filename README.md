@@ -18,15 +18,15 @@ Add this to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  alga_configuikit:
-    path: ../alga_configuikit
+  alga_configui:
+    path: ../alga_configui
 ```
 
 ## Usage
 Import the package and set DocumentationPage as your home widget:
 
 ```dart
-import 'package:alga_configuikit/alga_configuikit.dart';
+import 'package:alga_configui/alga_configui.dart';
 
 void main() {
   runApp(const MaterialApp(home: DocumentationPage()));

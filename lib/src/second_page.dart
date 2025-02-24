@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
-import 'package:alga_configuikit/src/services/web_config_service.dart';
+import 'package:alga_configui/src/services/web_config_service.dart';
 import 'package:dart_datakit/dart_datakit.dart';
 
 class SecondPage extends StatefulWidget {

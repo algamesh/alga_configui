@@ -9,7 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  alga_configuikit:  # Use alga_configuikit
+  alga_configui:  # Use alga_configui
     path: ../
   shared_preferences: ^2.5.2
   dart_datakit: ^1.1.1+2
