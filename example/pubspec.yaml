@@ -12,7 +12,7 @@ dependencies:
   alga_configuikit:  # Use alga_configuikit
     path: ../
   shared_preferences: ^2.5.2
-  dart_datakit: ^1.1.1+1
+  dart_datakit: ^1.1.1+2
 
 dev_dependencies:
   flutter_test:

@@ -1,5 +1,4 @@
-/// A Calculator.
-class Calculator {
-  /// Returns [value] plus 1.
-  int addOne(int value) => value + 1;
-}
+library;
+
+// This file is intentionally minimal.
+// The primary implementation is demonstrated in the example (main.dart).

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
 import 'package:alga_configuikit/src/services/web_config_service.dart';
+import 'package:dart_datakit/dart_datakit.dart';
 
 class SecondPage extends StatefulWidget {
   const SecondPage({Key? key}) : super(key: key);
@@ -11,7 +13,8 @@ class SecondPage extends StatefulWidget {
 class _SecondPageState extends State<SecondPage> {
   final _configService = WebConfigService();
 
-  Map<String, dynamic>? _allData; // entire JSON
+  // Now we store each table as a Datacat instance.
+  Map<String, Datacat>? _allData;
   List<String> _tableNames = [];
   String? _selectedTable;
 
@@ -27,10 +30,18 @@ class _SecondPageState extends State<SecondPage> {
   Future<void> _loadConfig() async {
     setState(() => _isLoading = true);
     try {
-      final data = await _configService.loadJson();
+      // Load the raw JSON from the config service.
+      final rawData = await _configService.loadJson();
+      // Convert each table (assumed to be a List of maps) into a Datacat.
+      final Map<String, Datacat> datacatMap = {};
+      rawData.forEach((tableName, tableData) {
+        // tableData is expected to be a List of maps.
+        final jsonStr = jsonEncode(tableData);
+        datacatMap[tableName] = Datacat.fromJsonString(jsonStr);
+      });
       setState(() {
-        _allData = data;
-        _tableNames = data.keys.toList();
+        _allData = datacatMap;
+        _tableNames = datacatMap.keys.toList();
       });
     } catch (e) {
       debugPrint('Error loading config data: $e');
@@ -43,7 +54,20 @@ class _SecondPageState extends State<SecondPage> {
     if (_allData == null) return;
     setState(() => _isSaving = true);
     try {
-      await _configService.saveJson(_allData!);
+      // Convert each Datacat back into a list of maps.
+      final Map<String, dynamic> toSave = {};
+      _allData!.forEach((tableName, datacat) {
+        final List<Map<String, dynamic>> tableRows = [];
+        for (final row in datacat.rows) {
+          final Map<String, dynamic> rowMap = {};
+          for (int i = 0; i < datacat.columns.length; i++) {
+            rowMap[datacat.columns[i]] = i < row.length ? row[i] : null;
+          }
+          tableRows.add(rowMap);
+        }
+        toSave[tableName] = tableRows;
+      });
+      await _configService.saveJson(toSave);
     } catch (e) {
       debugPrint('Error saving config data: $e');
     } finally {
@@ -51,22 +75,9 @@ class _SecondPageState extends State<SecondPage> {
     }
   }
 
-  List<Map<String, dynamic>> get _selectedTableRows {
-    if (_selectedTable == null || _allData == null) return [];
-    final raw = _allData![_selectedTable];
-    if (raw is List) {
-      return raw.cast<Map<String, dynamic>>();
-    }
-    return [];
-  }
-
-  List<String> get _columnNames {
-    final rows = _selectedTableRows;
-    final allKeys = <String>{};
-    for (var row in rows) {
-      allKeys.addAll(row.keys);
-    }
-    return allKeys.toList();
+  Datacat? get _selectedTableData {
+    if (_selectedTable == null || _allData == null) return null;
+    return _allData![_selectedTable];
   }
 
   @override
@@ -76,7 +87,6 @@ class _SecondPageState extends State<SecondPage> {
         body: Center(child: CircularProgressIndicator()),
       );
     }
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Configuration Tables'),
@@ -119,11 +129,12 @@ class _SecondPageState extends State<SecondPage> {
   }
 
   Widget _buildDataTable() {
-    if (_selectedTable == null) {
+    final datacat = _selectedTableData;
+    if (datacat == null) {
       return const Center(child: Text('No table selected.'));
     }
-    final columns = _columnNames;
-    final rows = _selectedTableRows;
+    final columns = datacat.columns;
+    final rows = datacat.rows;
 
     if (rows.isEmpty) {
       return const Center(child: Text('No rows in this table.'));
@@ -133,25 +144,27 @@ class _SecondPageState extends State<SecondPage> {
       scrollDirection: Axis.horizontal,
       child: DataTable(
         columns: columns.map((col) => DataColumn(label: Text(col))).toList(),
-        rows: rows.map((row) {
+        rows: List<DataRow>.generate(rows.length, (rowIndex) {
+          final row = rows[rowIndex];
           return DataRow(
-            cells: columns.map((col) {
-              final cellValue = row[col]?.toString() ?? '';
+            cells: List<DataCell>.generate(columns.length, (colIndex) {
+              final cellValue = row[colIndex]?.toString() ?? '';
               return DataCell(
                 Text(cellValue),
                 showEditIcon: true,
                 onTap: () async {
-                  final newVal = await _showEditDialog(col, cellValue);
+                  final newVal =
+                      await _showEditDialog(columns[colIndex], cellValue);
                   if (newVal != null) {
                     setState(() {
-                      row[col] = _parseValue(newVal);
+                      row[colIndex] = _parseValue(newVal);
                     });
                   }
                 },
               );
-            }).toList(),
+            }),
           );
-        }).toList(),
+        }),
       ),
     );
   }

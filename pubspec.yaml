@@ -1,7 +1,9 @@
 name: alga_configuikit
-description: "A new Flutter package project."
+description: "Handles config ui items."
 version: 0.0.1
-homepage:
+homepage: https://github.com/algamesh/alga_configuikit
+repository: https://github.com/algamesh/alga_configuikit
+issue_tracker: https://github.com/algamesh/alga_configuikit/issues
 
 environment:
   sdk: ^3.6.2
@@ -12,6 +14,7 @@ dependencies:
     sdk: flutter
   path_provider: ^2.1.5
   shared_preferences: ^2.5.2
+  dart_datakit: ^1.1.1+2
 
 dev_dependencies:
   flutter_test:
