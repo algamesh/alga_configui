@@ -1,3 +1,7 @@
+## 0.0.3+2
+
+* Update dart_datakit ver.
+
 ## 0.0.3+1
 
 * Update dart_datakit to include json map functionality.
