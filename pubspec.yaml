@@ -1,6 +1,6 @@
 name: alga_configui
 description: "Handles configuration user interface elements."
-version: 0.0.3
+version: 0.0.3+1
 homepage: https://github.com/algamesh/alga_configui
 repository: https://github.com/algamesh/alga_configui
 issue_tracker: https://github.com/algamesh/alga_configui/issues
@@ -14,7 +14,7 @@ dependencies:
     sdk: flutter
   path_provider: ^2.1.5
   shared_preferences: ^2.5.2
-  dart_datakit: ^1.1.2
+  dart_datakit: ^1.1.3
 
 dev_dependencies:
   flutter_test:
