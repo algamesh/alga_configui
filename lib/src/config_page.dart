@@ -2,20 +2,26 @@ import 'package:flutter/material.dart';
 import 'package:dart_datakit/dart_datakit.dart';
 
 class ConfigPage extends StatefulWidget {
-  /// Optionally provide a [Datacat] object.
+  /// Optionally provide a [Datacat] object for a single table.
   final Datacat? datacat;
 
-  const ConfigPage({super.key, this.datacat});
+  /// Optionally provide a [Datakitties] instance for multiple tables.
+  final Datakitties? datakitties;
+
+  const ConfigPage({super.key, this.datacat, this.datakitties});
 
   @override
   State<ConfigPage> createState() => _ConfigPageState();
 }
 
 class _ConfigPageState extends State<ConfigPage> {
-  // We store each table as a Datacat instance.
+  // Stores all tables (except metadata) as Datacat instances.
   Map<String, Datacat>? _allData;
   List<String> _tableNames = [];
   String? _selectedTable;
+
+  // Optionally store metadata (if present) as a Datacat.
+  Datacat? _metadata;
 
   bool _isLoading = true;
   bool _isSaving = false;
@@ -23,25 +29,45 @@ class _ConfigPageState extends State<ConfigPage> {
   @override
   void initState() {
     super.initState();
-    // If a Datacat was provided, use it; otherwise, create one from in-line JSON.
-    if (widget.datacat != null) {
+    if (widget.datakitties != null) {
+      // Use the provided Datakitties.
+      final tables = Map<String, Datacat>.from(widget.datakitties!.catalogues);
+      if (tables.containsKey("metadata")) {
+        _metadata = tables["metadata"];
+        tables.remove("metadata");
+      }
+      _allData = tables;
+      _tableNames = tables.keys.toList();
+      if (_tableNames.isNotEmpty) {
+        _selectedTable = _tableNames.first;
+      }
+      _isLoading = false;
+    } else if (widget.datacat != null) {
+      // Fallback to a single table.
       _allData = {'default': widget.datacat!};
       _tableNames = ['default'];
       _selectedTable = 'default';
       _isLoading = false;
     } else {
+      // No external data provided; create a placeholder using Datakitties.
       _allData = _createPlaceholder();
       _tableNames = _allData!.keys.toList();
       if (_tableNames.isNotEmpty) {
-        _selectedTable = _tableNames[0];
+        _selectedTable = _tableNames.first;
       }
       _isLoading = false;
     }
   }
 
+  /// Creates a placeholder Datakitties instance from inline JSON,
+  /// extracts metadata (if any) and returns the remaining tables.
   Map<String, Datacat> _createPlaceholder() {
     const placeholderJson = '''
 {
+  "metadata": [
+    { "table": "Users", "description": "User information", "columns": "id,name,role" },
+    { "table": "Products", "description": "Product listings", "columns": "product_id,product_name,price" }
+  ],
   "Users": [
     { "id": 1, "name": "Alice", "role": "Administrator" },
     { "id": 2, "name": "Bob", "role": "Editor" },
@@ -53,8 +79,14 @@ class _ConfigPageState extends State<ConfigPage> {
     { "product_id": 103, "product_name": "Thingamajig", "price": 14.99 }
   ]
 }
-  ''';
-    return Datacat.fromJsonMapString(placeholderJson);
+    ''';
+    final datakitties = Datakitties.fromJsonMapString(placeholderJson);
+    final tables = Map<String, Datacat>.from(datakitties.catalogues);
+    if (tables.containsKey("metadata")) {
+      _metadata = tables["metadata"];
+      tables.remove("metadata");
+    }
+    return tables;
   }
 
   Future<void> _saveConfig() async {
@@ -89,6 +121,7 @@ class _ConfigPageState extends State<ConfigPage> {
       ),
       body: Column(
         children: [
+          _buildMetadataSection(),
           _buildTableSelector(),
           Expanded(child: _buildDataTable()),
         ],
@@ -96,6 +129,30 @@ class _ConfigPageState extends State<ConfigPage> {
     );
   }
 
+  /// Display metadata if available.
+  Widget _buildMetadataSection() {
+    if (_metadata == null) return Container();
+    return Container(
+      padding: const EdgeInsets.all(8.0),
+      color: Colors.grey.shade200,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Metadata',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          ),
+          const SizedBox(height: 4),
+          // Display each metadata row as a comma-separated string.
+          ..._metadata!.rows.map((row) {
+            return Text(row.join(", "));
+          }).toList(),
+        ],
+      ),
+    );
+  }
+
+  /// Build dropdown to select a table.
   Widget _buildTableSelector() {
     return Padding(
       padding: const EdgeInsets.all(8.0),
@@ -118,6 +175,7 @@ class _ConfigPageState extends State<ConfigPage> {
     );
   }
 
+  /// Build the DataTable for the selected Datacat.
   Widget _buildDataTable() {
     final datacat = _selectedTableData;
     if (datacat == null) {
@@ -168,7 +226,9 @@ class _ConfigPageState extends State<ConfigPage> {
         content: TextField(controller: controller),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
           TextButton(
             onPressed: () {
               Navigator.pop(ctx, controller.text);

@@ -1,3 +1,7 @@
+## 0.0.4
+
+* accomodate parsing datakitties object for data serialization.
+
 ## 0.0.3+1
 
 * Update dart_datakit to include json map functionality.
